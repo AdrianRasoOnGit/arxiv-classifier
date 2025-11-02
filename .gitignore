@@ -1,0 +1,45 @@
+# Python cache and compiled files
+**/__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.log
+*.tmp
+
+# Build artifacts
+build/
+dist/
+*.egg-info/
+src/arxiv_classifier.egg-info/
+
+# Data (keep folder structure)
+data/raw/
+data/processed/
+data/processed/vectors
+data/processed/splits
+data/meta/
+
+!data/.gitkeep
+!data/processed/.gitkeep
+!data/processed/vectors/.gitkeep
+!data/meta/.gitkeep
+!data/raw/.gitkeep
+
+# Models (keep folder structure)
+models/with_tfidf
+models/with_ngram
+
+!models/with_tfidf.gitkeep
+!models/with_ngram.gitkeep
+
+# Work in progress files
+src/arxiv_classifier/utils/wip/
+
+# Notebooks
+notebooks/*.ipynb
+notebooks/archived
+!notebooks/archived (legacy nbs).gitkeep
+
+# System or OS files
+.DS_Store
+Thumbs.db

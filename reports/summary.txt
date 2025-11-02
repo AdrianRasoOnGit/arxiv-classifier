@@ -1,0 +1,96 @@
+
+ TF-IDF vectors model accuracy:  0.5870.
+ TF-IDF vectors model accuracy:  0.4810.
+ TF-IDF vectors model accuracy:  0.4740.
+ TF-IDF vectors model accuracy:  0.4812.
+ TF-IDF vectors model accuracy:  0.4736.
+ TF-IDF vectors model accuracy:  0.5662.
+------------------------------------------------------------
+[27-10-2025 15:$M:47] TF-IDF Forward MultiLayer Perceptron
+Accuracy: 0.5794
+Hyperparameters: 
+   hidden_layers: 2
+   hidden_dim: 256
+   learning_rate: 0.0005
+   dropout_rate: 0.4
+   lam: 0.01
+   epochs: 50
+   batch_size: 2048
+   max_train: 400000
+   max_test: 5000
+   profile: tfidf
+
+------------------------------------------------------------
+[27-10-2025 16:$M:37] N-gram Forward MultiLayer Perceptron
+Accuracy: 0.5052
+Hyperparameters: 
+   hidden_layers: 3
+   hidden_dim: 512
+   learning_rate: 0.0005
+   dropout_rate: 0.4
+   lam: 0.01
+   epochs: 5
+   batch_size: 2048
+   max_train: 400000
+   max_test: 5000
+   profile: ngram
+
+------------------------------------------------------------
+[01-11-2025 10:$M:11] N-gram Forward MultiLayer Perceptron
+Accuracy: 0.5522
+Hyperparameters: 
+   hidden_layers: 3
+   hidden_dim: 512
+   learning_rate: 0.0005
+   dropout_rate: 0.4
+   lam: 0.01
+   epochs: 50
+   batch_size: 2048
+   max_train: 400000
+   max_test: 5000
+   profile: ngram
+
+------------------------------------------------------------
+[01-11-2025 22:$M:53] N-gram Forward MultiLayer Perceptron
+Accuracy: 0.5454
+Hyperparameters: 
+   hidden_layers: 3
+   hidden_dim: 512
+   learning_rate: 0.0005
+   dropout_rate: 0.4
+   lam: 0.01
+   epochs: 150
+   batch_size: 2048
+   max_train: 400000
+   max_test: 5000
+   profile: ngram
+
+------------------------------------------------------------
+[01-11-2025 22:$M:05] N-gram Forward MultiLayer Perceptron
+Accuracy: 0.5524
+Hyperparameters: 
+   hidden_layers: 3
+   hidden_dim: 384
+   learning_rate: 0.0004
+   dropout_rate: 0.55
+   lam: 0.03
+   epochs: 60
+   batch_size: 2048
+   max_train: 400000
+   max_test: 5000
+   profile: ngram
+
+------------------------------------------------------------
+[02-11-2025 00:$M:14] N-gram Forward MultiLayer Perceptron
+Accuracy: 0.5872
+Hyperparameters: 
+   hidden_layers: 2
+   hidden_dim: 512
+   learning_rate: 0.00065
+   dropout_rate: 0.55
+   lam: 0.03
+   epochs: 70
+   batch_size: 2048
+   max_train: 400000
+   max_test: 5000
+   profile: ngram
