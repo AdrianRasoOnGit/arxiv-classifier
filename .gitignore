@@ -5,6 +5,9 @@
 *.pyd
 *.log
 *.tmp
+.ruff_chache/
+.mypy_cache/
+.pytest_cache
 
 # Build artifacts
 build/
@@ -43,3 +46,7 @@ notebooks/archived
 # System or OS files
 .DS_Store
 Thumbs.db
+
+# Bundle
+project_bundle.txt
+bundle_project.py

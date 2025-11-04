@@ -1,7 +1,25 @@
 #!/usr/bin/python3
+"""
+Command Line Interface for the arxiv-classifier
+
+Run preprocessing, vectorizations, and trainings from terminal commands.
+
+Usage examples:
+
+      arxiv-classifier preprocess
+      arxiv-classifier vectorize --model tfidf
+      arxiv-classifier train --model ngram
+      arxiv-classifier all
+
+"""
+from __future__ import annotations
 
 import argparse
+import logging
+import sys
+from typing import Iterable, List
 
+# Preprocessing
 from arxiv_classifier.preprocessing.json_to_parquet import convert_json_to_parquet
 from arxiv_classifier.preprocessing.get_raw import get_raw
 from arxiv_classifier.preprocessing.taxonomy_scraper import build_taxonomy
@@ -9,151 +27,213 @@ from arxiv_classifier.preprocessing.grab_labels import build_labels
 from arxiv_classifier.preprocessing.raw_parquet_to_dataset import convert_parquet_to_dataset
 from arxiv_classifier.preprocessing.dataset_to_clean_dataset import filter_dataset_labels
 from arxiv_classifier.preprocessing.split_dataset import split_dataset
+
+# Vectorizations
 from arxiv_classifier.vectorizations.tfidf_vectorization import build_tfidf_vectorizer
 from arxiv_classifier.vectorizations.ngram_vectorization import build_ngram_vectorizer
 from arxiv_classifier.vectorizations.embeddings_vectorization import build_embeddings_vectorizer
+
+# Trainings
 from arxiv_classifier.trainings.train_tfidf import train_tfidf
 from arxiv_classifier.trainings.train_ngram import train_ngram
 from arxiv_classifier.trainings.train_embeddings import train_embeddings
 
+# Logging helpers
+
+def setup_logging(verbosity: int) -> None:
+    level = logging.WARNING
+    if verbosity == 1:
+        level = logging.INFO
+    elif verbosity >= 2:
+        level = logging.DEBUG
+    logging.basicConfig(
+        level = level,
+        format= "[%(levelname)s] %(message)s",
+    )
+
+def log_stage(msg: str) -> None:
+    logging.info(msg)
+
+# STAGE WRAPPERS. Preprocessing
+
+def stage_raw():
+    """ Download the arxix dataset from Kaggle, just if it's missing """
+    log_stage("Downloading raw dataset if missing.")
+    get_raw()
+    log_stage("Raw dataset ready.")
+
+def stage_taxonomy():
+    log_stage("Preparing arXiv repository taxonomy.")
+    build_taxonomy()
+    log_stage("Taxonomy extracted and saved.")
+
+def stage_labels():
+    log_stage("Extracting canonical labels from the arXiv taxonomy.")
+    build_labels()
+    log_stage("Labels saved.")
+
+def stage_json_to_parquet():
+    log_stage("Converting JSON raw into Parquet.")
+    convert_json_to_parquet()
+    log_stage("Raw Parquet created from the JSON raw.")
+
+def stage_parquet_to_dataset():
+    log_stage("Converting raw Parquet into Parquet dataset with labels text and label.")
+    convert_parquet_to_dataset()
+    log_stage("Parquet dataset created.")
+
+def stage_clean():
+    log_stage("Filtering dataset to canonical labels from the arXiv taxonomy.")
+    filter_dataset_labels()
+    log_stage("Clean dataset saved.")
+
+def stage_split():
+    log_stage("Splitting dataset into train and test splits.")
+    split_dataset()
+    log_stage("Split complete.")
+
+def stage_preprocess():
+    stage_taxonomy()
+    stage_labels()
+    stage_json_to_parquet()
+    stage_parquet_to_dataset()
+    stage_clean()
+    stage_split()
+
+# STAGE WRAPPERS. Vectorizations
+
+def stage_vectorize(model: str):
+    log_stage(f"Vectorizing with '{model}'.")
+    if model == "tfidf":
+        build_tfidf_vectorizer()
+    elif model == "ngram":
+        build_ngram_vectorizer()
+    elif model == "embeddings":
+        build_embeddings_vectorizer()
+    else:
+        raise ValueError(f"Unknown vectorization model {model}, try tfidf, ngram, or embeddings!")
+    log_stage(f"Vectorization with {model} respresentation complete.")
+
+# STAGE WRAPPERS. Trainings
+
+def stage_train(model: str):
+    log_stage(f"Training '{model}'.")
+    if model == "tfidf":
+        train_tfidf()
+    elif model == "ngram":
+        train_ngram()
+    elif model == "embeddings":
+        train_embeddings()
+
+# CLI entrypoint
+
 def main():
     parser = argparse.ArgumentParser(
         prog = "arxiv-classifier",
-        description = "Interface for managing processes related to generating the project."
+        description = "CLI for running arxiv-classifier pipeline.",
+        formatter_class = argparse.RawTextHelpFormatter,
     )
 
+    parser.add_argument(
+        "-v", "--verbose",
+        action = "count", default = 0,
+        help = "Increase verbosity (-v for INFO, -vv for DEBUG)"
+    )
+    
     sub = parser.add_subparsers(dest = "command", required = True)
 
-    # Preprocessing commands
-    sub.add_parser("raw", help = "Download the arXiv dataset from Kaggle.")
+    # Preprocess tasks calls
+    sub.add_parser("raw", help = "Download the arXiv dataset from Kaggle if missing.")
     sub.add_parser("taxonomy", help = "Download and save the arXiv taxonomy.")
-    sub.add_parser("labels", help = "Extract and save canonical arXiv labels from taxonomy.")
-    sub.add_parser("json-to-parquet", help = "Convert raw JSON data to Parquet format.")
-    sub.add_parser("parquet-to-dataset", help = "Convert Parquet data to text + label dataset.")
+    sub.add_parser("labels", help = "Extract and save canonical arXiv labels.")
+    sub.add_parser("json-to-parquet", help = "Convert raw JSON data to raw Parquet data.")
+    sub.add_parser("parquet-to-dataset", help = "Convert Parquet data to text and label dataset.")
     sub.add_parser("clean", help = "Filter dataset to keep only canonical labels.")
-    sub.add_parser("split", help = "Split cleaned dataset into train/test sets.")
-    sub.add_parser("preprocess", help = "Run steps from original Kaggle raw dataset to this project dataset.")
-    sub.add_parser("vectorization", help = "Build all kinds of vectors of the project.")
-    sub.add_parser("training", help = "Perform training on all models and vectors.")
+    sub.add_parser("split", help = "Split cleaned dataset into train and test splits.")
 
-    # Vectorization commands
-    vectorize_parser = sub.add_parser("vectorize", help = "Vectorize dataset using a specified method.")
+    # Preprocess stage call
+    sub.add_parser("preprocess", help = "Run taxonomy, labels, json-to-parquet, parquet-to-dataset, clean, split.")
+
+    # Vectorize stage call
+    vectorize_parser = sub.add_parser("vectorize", help = "Vectorize dataset with a specified representation model.")
     vectorize_parser.add_argument(
-        "model",
-        choices = ["tfidf", "ngram", "embeddings"],
-        help = "Vectors methods available."
+        "--model", choices = ["tfidf", "ngram", "embeddings"], required = True,
+        help = "Vectorization representation model."
     )
-    
 
-    # Train commands
-    train_parser = sub.add_parser("train", help = "Train a model.")
+    # Train stage call
+    train_parser = sub.add_parser("train", help = "Train a model using its corresponding vectors.")
     train_parser.add_argument(
-        "model",
-        choices = ["tfidf", "ngram", "embeddings"],
-        help = "Models to train."
+        "--model", choices = ["tfidf", "ngram", "embeddings"], required = True,
+        help = "Model to train."
     )
-    
-    sub.add_parser("all", help = "Run the complete project, from the preprocessing pipeline, to the vectorization and training steps.")
-    
-    help_parser = sub.add_parser("help", help = "This is the Command-Line Interface of the arxiv-classifier project. Here, you can run any part of the repo, or perform a complete run of all the elements contained, reconstructing all the data, vectorizing and performing the trainings. The functions you can access from here are: taxonomy, labels, json to parquet, parquet to dataset, clean, split, preprocess (which is the complete preprocess pipeline), tfidf, train-tfidf, preprocessing, and all.")
-                                 
+
+    # Full pipeline call
+    sub.add_parser(
+        "all",
+        help = "Run full pipeline."
+    )
+
+    # Help
+
+    help_parser = sub.add_parser("help", help = "Show CLI help message.")
+
     args = parser.parse_args()
-
-    # Dispatch logic
-
-    # Complete project stages
+    setup_logging(args.verbose)
     
-    if args.command == "preprocessing":
-        build_taxonomy()
-        build_labels()
-        convert_json_to_parquet()
-        convert_parquet_to_dataset()
-        filter_dataset_labels()
-        split_dataset()
+    # Dispatch
+    if args.command == "raw":
+        stage_raw()
 
-    elif args.command == "vectorization":
-        build_tfidf_vectorizer()
-        build_ngram_vectorizer()
-        build_embeddings_vectorizer()
-
-    elif args.command == "training":
-        train_tfidf()
-        train_ngram()
-        train_embeddings()
-
-    elif args.command == "all":
-        get_raw()
-        build_taxonomy()
-        build_labels()
-        convert_json_to_parquet()
-        convert_parquet_to_dataset()
-        filter_dataset_labels()
-        split_dataset()
-        build_tfidf_vectorizer()
-        train_tfidf()
-        build_ngram_vectorizer()
-        train_ngram()
-        build_embeddings_vectorizer()
-        train_embeddings()
-        
-    # Preprocessing stages calls
-    
-    elif args.command == "raw":
-        get_raw()
-    
     elif args.command == "taxonomy":
-        build_taxonomy()
+        stage_taxonomy()
 
     elif args.command == "labels":
-        build_labels()
+        stage_labels()
 
     elif args.command == "json-to-parquet":
-        convert_json_to_parquet()
+        stage_json_to_parquet()
 
     elif args.command == "parquet-to-dataset":
-        convert_parquet_to_dataset()
+        stage_parquet_to_dataset()
 
     elif args.command == "clean":
-        filter_dataset_labels()
+        stage_clean()
 
     elif args.command == "split":
-        split_dataset()
+        stage_split()
 
-    # Vectorization stages calls
-    
+    elif args.command == "preprocess":
+        stage_preprocess()
+
     elif args.command == "vectorize":
-        
-        if args.model == "tfidf":
-            build_tfidf_vectorizer()
+        stage_vectorize(args.model)
 
-        elif args.model == "ngram":
-            build_ngram_vectorizer()
-
-        elif args.model == "embeddings":
-            build_embeddings_vectorizer()
-
-    # Train stages calls
-    
     elif args.command == "train":
-        
-        if args.model == "tfidf":
-            train_tfidf()
-            
-        elif args.model == "ngram":
-            train_ngram()
-            
-        elif args.model == "embeddings":
-            train_embeddings()
+        stage_train(args.model)
+
+    elif args.command == "all":
+        stage_raw()
+        stage_taxonomy()
+        stage_labels()
+        stage_json_to_parquet()
+        stage_parquet_to_dataset()
+        stage_clean()
+        stage_split()
+
+        for m in ["tfidf", "ngram"]:
+            stage_vectorize(m)
+            stage_train(m)
 
     # CLI help call
     
     elif args.command == "help":
-        print("""
+        log_stage("""
 
 arxiv-classifier CLI Help Space
 -------------------------------
         
-This is the Command-Line Interface for the arxiv-classifier project. You can run any stage of the project individually, execute the entire workflor, or particular scripts. Check the inventory below to see which operations of the repo are available.
+This is the Command-Line Interface for the arxiv-classifier project. You can run any stage of the project individually, execute the entire workflow, or particular scripts. Check the inventory below to see which operations of the repo are available.
 
 Usage:
 arxiv-classifier <command>
@@ -174,15 +254,14 @@ Commands:
     help                 Show this message.
 
 Examples:
-    arxiv-classifier preprocessing
-    arxiv-classifier all
-    arxiv-classifier train tfidf
+    arxiv-classifier -vv preprocessing
+    arxiv-classifier -v all
+    arxiv-classifier -vv train --model tfidf
         
         """)
-
+        
     else:
         parser.print_help()
-
 
 if __name__ == "__main__":
     main()

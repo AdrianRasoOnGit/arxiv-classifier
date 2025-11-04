@@ -1,8 +1,9 @@
 
 # arxiv-classifier: From-Scratch Neural Network Text Classification Framework
-[![Python](https://img.shields.io/badge/Python-3.10+blue.svg)]()
 [![License](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
-[![Build](https://img.shields.io/badge/Status-Research-orange.svg)]()
+[![Purpose](https://img.shields.io/badge/Status-Research-orange.svg)]()
+[![Topics](https://img.shields.io/badge/Topics-Machine%20Learning%20%7C%20NLP-brightblue.svg)]()
+[![Dataset](https://img.shields.io/badge/Dataset-Kaggle-blue.svg)](https://www.kaggle.com/datasets/Cornell-University/arxiv/data)
 
 ---
 A from-scratch multi-representation text classification framework for scientific papers, based on the arXiv taxonomy, and built with `NumPy` and `PyArrow`.
@@ -129,7 +130,11 @@ The repository is organized to contain all the stages of a complete ML project, 
 ---
 
 ## Using the CLI
-As mentioned above, the entire project can be orchestrated directly from the command line. Below is a quick cheat sheet of available commands to help you navigate and reproduce every stage of the pipeline. You can always check again this instructions using `arxiv-classifier help`, to access the *CLI Help Space*.
+As mentioned above, the entire project can be orchestrated directly from the command line. Below is a quick cheat sheet of available commands to help you navigate and reproduce every stage of the pipeline. You can always check again this instructions by running:
+
+```bash
+arxiv-classifier help
+```
 
 | Command | Description |
 |----------|-------------|
@@ -145,11 +150,32 @@ As mentioned above, the entire project can be orchestrated directly from the com
 | `all` | Execute the entire pipeline, from preprocessing to training. |
 | `help` | Display the CLI help message. |
 
+
 ### Examples
+
+You can run individual steps:
 ```bash
-arxiv-classifier preprocessing
+arxiv-classifier json-to-parquet
+arxiv-classifier labels
+arxiv-classifier clean
+```
+The preprocessing pipeline:
+```bash
+arxiv-classifier preprocess
+```
+Or vectorize or train using specific representation models:
+```bash
+arxiv-classifier vectorize --model tfidf
+arxiv-classifier train --model ngram
+```
+It is possible to run too the complete workflow:
+```bash
 arxiv-classifier all
-arxiv-classifier train-tfidf
+```
+And enable detailed logs:
+```bash
+arxiv-classifier -v all          # shows info level logs!
+arxiv-classifier -vv all         # shows debug level logs!
 ```
 
 ---
