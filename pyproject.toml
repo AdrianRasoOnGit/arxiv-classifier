@@ -38,3 +38,8 @@ dependencies = [
     "pathlib>=1.0.1",
     "setuptools>=68.0.0",
 ]
+
+[tool.pytest.ini_options]
+testspaths = ["tests"]
+addopts = "-q"
+filterwarnings = ["ignore::UserWarning"]

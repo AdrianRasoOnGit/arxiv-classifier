@@ -17,7 +17,7 @@ A from-scratch multi-representation text classification framework for scientific
 - [Contents](#contents)
 - [Using the CLI](#using-the-cli)
 - [Requirements](#requirements)
-- [Results Summary](#results-summary)
+- [Performance Insights](#performance-insights)
 - [License](#license)
 - [Some References](#some-references)
 
